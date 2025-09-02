@@ -1,6 +1,9 @@
 {
   "type": "module",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/google-genai": "^0.2.16",
+    "dotenv": "^17.2.1",
     "mem0ai": "^2.1.37"
   }
 }
