@@ -17,7 +17,7 @@ export function TimelineItem({
       <span
         aria-hidden="true"
         className="absolute -left-[9px] top-6 h-3 w-3 rounded-full ring-2"
-        style={{ backgroundColor: colors.gold, ringColor: colors.white }}
+        style={{ backgroundColor: colors.gold, borderColor: colors.white }}
       />
       <Card className="bg-white border-black/10">
         <CardContent className="flex flex-col gap-3 p-4">
