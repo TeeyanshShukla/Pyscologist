@@ -81,9 +81,10 @@ export default function ChatPage() {
 
   const typingLabel = useMemo(() => (isTyping ? "SRK is thinking…" : "Ready"), [isTyping])
 
-  function handleSend() {
+  async function handleSend() {
     const text = input.trim()
     if (!text) return
+    
     const newMsg: Message = {
       id: crypto.randomUUID(),
       role: "user",
@@ -92,22 +93,50 @@ export default function ChatPage() {
     }
     setMessages((prev) => [...prev, newMsg])
     setInput("")
-    // Simulate thoughtful pause and supportive reply
     setIsTyping(true)
-    const replyText =
-      "I hear you. Let's break this into small, kind steps. What would feel 1% more manageable right now?"
-    setTimeout(() => {
+
+    try {
+      // Call the actual chat API
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: text,
+          userId: 'Alex', // For now using a hardcoded user ID, can be made dynamic later
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to get response')
+      }
+
+      const data = await response.json()
+      
       setMessages((prev) => [
         ...prev,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: replyText,
+          content: data.response,
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ])
-      setTimeout(() => setIsTyping(false), 700)
-    }, 900)
+    } catch (error) {
+      console.error('Chat error:', error)
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: "I apologize, my friend. I'm having a moment of difficulty connecting my thoughts. Could you please try again?",
+          time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        },
+      ])
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   return (

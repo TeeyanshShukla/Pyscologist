@@ -156,7 +156,7 @@ function Features() {
   )
 }
 
-function StartSessionButton({ small = false }: { small?: boolean }) {
+function StartSessionButton() {
   const className = cn(
     "group inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-medium",
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-white/70",
