@@ -3,6 +3,14 @@
 import type React from "react"
 
 import { useMemo, useState } from "react"
+
+// UUID v4 generator for environments without crypto.randomUUID
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -88,7 +96,7 @@ export default function ChatPage() {
     if (!text) return
     
     const newMsg: Message = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: "user",
       content: text,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -121,7 +129,7 @@ export default function ChatPage() {
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             role: "assistant",
             content: data.response,
             time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -133,7 +141,7 @@ export default function ChatPage() {
         setMessages((prev) => [
           ...prev,
           {
-            id: crypto.randomUUID(),
+            id: uuidv4(),
             role: "assistant",
             content: fallbackResponse,
             time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -146,7 +154,7 @@ export default function ChatPage() {
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           role: "assistant",
           content: "I'm having trouble connecting right now. Please check your connection and try again.",
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
