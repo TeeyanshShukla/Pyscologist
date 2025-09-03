@@ -3,6 +3,14 @@
 import type React from "react"
 
 import { useMemo, useState } from "react"
+
+// UUID v4 generator for environments without crypto.randomUUID
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -75,39 +83,86 @@ export default function ChatPage() {
   const [mode, setMode] = useState<ThemeMode>("sunrise")
   const [messages, setMessages] = useState<Message[]>(initialMessages)
   const [input, setInput] = useState("")
-  const [isTyping, setIsTyping] = useState(true)
+  const [isTyping, setIsTyping] = useState(false)
+  const [userId] = useState("Alex") // For demo purposes, using hardcoded user
+  const [messageHistory, setMessageHistory] = useState<any[]>([])
 
   const { backgroundImage, bubble } = useThemedStyles(mode)
 
   const typingLabel = useMemo(() => (isTyping ? "SRK is thinking…" : "Ready"), [isTyping])
 
-  function handleSend() {
+  async function handleSend() {
     const text = input.trim()
     if (!text) return
+    
     const newMsg: Message = {
-      id: crypto.randomUUID(),
+      id: uuidv4(),
       role: "user",
       content: text,
       time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
     }
     setMessages((prev) => [...prev, newMsg])
     setInput("")
-    // Simulate thoughtful pause and supportive reply
     setIsTyping(true)
-    const replyText =
-      "I hear you. Let's break this into small, kind steps. What would feel 1% more manageable right now?"
-    setTimeout(() => {
+
+    try {
+      // Call our API endpoint
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: text,
+          userId: userId,
+          messageHistory: messageHistory
+        })
+      })
+
+      const data = await response.json()
+      
+      if (data.success && data.response) {
+        // Update message history for context
+        setMessageHistory(data.messageHistory || [])
+        
+        // Add AI response to messages
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: "assistant",
+            content: data.response,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ])
+      } else {
+        // Fallback response
+        const fallbackResponse = data.response || "I apologize, but I'm having trouble processing your message right now. Please try again in a moment."
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: uuidv4(),
+            role: "assistant",
+            content: fallbackResponse,
+            time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          },
+        ])
+      }
+    } catch (error) {
+      console.error('Chat API error:', error)
+      // Fallback response for network errors
       setMessages((prev) => [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: uuidv4(),
           role: "assistant",
-          content: replyText,
+          content: "I'm having trouble connecting right now. Please check your connection and try again.",
           time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         },
       ])
-      setTimeout(() => setIsTyping(false), 700)
-    }, 900)
+    } finally {
+      setIsTyping(false)
+    }
   }
 
   return (
